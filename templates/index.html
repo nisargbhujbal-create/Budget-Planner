@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Personal Budget &amp; Savings Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ===== Header ===== -->
+  <header class="masthead">
+    <div class="masthead__brand">
+      <span class="masthead__mark">L</span>
+      <div>
+        <h1>Ledger</h1>
+        <p>Personal budget &amp; savings planner</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="record">Record</button>
+      <button class="tab" data-tab="goals">Savings Goals</button>
+      <button class="tab" data-tab="history">History</button>
+    </nav>
+  </header>
+
+  <!-- ===== Dashboard ===== -->
+  <main id="panel-dashboard" class="panel is-active">
+    <div class="panel__toolbar">
+      <label class="field field--inline">
+        <span>Viewing month</span>
+        <select id="month-select"></select>
+      </label>
+      <div class="toolbar__actions">
+        <button class="btn btn--ghost" id="export-btn">Export CSV</button>
+        <button class="btn btn--ghost btn--danger" id="delete-btn">Delete month</button>
+      </div>
+    </div>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <p class="empty-state__eyebrow">No entries yet</p>
+      <h2>Nothing recorded for this month.</h2>
+      <p>Head to the Record tab to log your income and expenses — this dashboard fills in the moment you do.</p>
+      <button class="btn btn--primary" data-goto="record">Record this month</button>
+    </div>
+
+    <div id="dashboard-body" hidden>
+      <section class="stat-row">
+        <div class="stat-card">
+          <span class="stat-card__label">Income</span>
+          <span class="stat-card__value mono" id="stat-income">₹0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Total expenses</span>
+          <span class="stat-card__value mono" id="stat-expenses">₹0</span>
+        </div>
+        <div class="stat-card stat-card--ledger">
+          <span class="stat-card__label">Remaining balance</span>
+          <span class="stat-card__value mono" id="stat-balance">₹0</span>
+          <div class="ledger-edge" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <div class="card">
+          <h3>Spending by category</h3>
+          <canvas id="category-chart" height="220"></canvas>
+        </div>
+        <div class="card">
+          <h3>Ledger rows</h3>
+          <table class="ledger-table" id="ledger-table">
+            <thead>
+              <tr><th>Category</th><th class="num">Amount</th><th class="num">Share</th></tr>
+            </thead>
+            <tbody id="ledger-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===== Record ===== -->
+  <main id="panel-record" class="panel">
+    <div class="card card--wide">
+      <h3>Record a month</h3>
+      <p class="hint">Pick a month, enter what came in, then log every category you spent on. Saving this again for the same month overwrites the old entry.</p>
+
+      <form id="record-form">
+        <div class="field-row">
+          <label class="field">
+            <span>Month</span>
+            <input type="month" id="input-month" required>
+          </label>
+          <label class="field">
+            <span>Monthly income</span>
+            <input type="number" id="input-income" min="0" step="0.01" placeholder="0.00" required>
+          </label>
+        </div>
+
+        <div class="expense-block">
+          <div class="expense-block__head">
+            <span>Category</span>
+            <span>Amount</span>
+            <span></span>
+          </div>
+          <div id="expense-rows"></div>
+          <div class="expense-block__foot">
+            <label class="field field--inline field--grow">
+              <span>Add category</span>
+              <div class="row-inline">
+                <input type="text" id="new-category-name" placeholder="e.g. Subscriptions">
+                <button type="button" class="btn btn--ghost" id="add-category-btn">Add row</button>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-foot">
+          <span class="form-foot__msg" id="record-msg"></span>
+          <button type="submit" class="btn btn--primary">Save month</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- ===== Savings Goals ===== -->
+  <main id="panel-goals" class="panel">
+    <div class="grid-2">
+      <div class="card">
+        <h3>New goal</h3>
+        <form id="goal-form">
+          <label class="field">
+            <span>What are you saving for?</span>
+            <input type="text" id="goal-name" placeholder="e.g. Emergency fund" required>
+          </label>
+          <label class="field">
+            <span>Target amount</span>
+            <input type="number" id="goal-target" min="1" step="0.01" placeholder="0.00" required>
+          </label>
+          <button type="submit" class="btn btn--primary">Create goal</button>
+        </form>
+
+        <hr class="divider">
+        <h3>Estimate time to reach a goal</h3>
+        <p class="hint">Uses your average monthly balance across every month you've recorded.</p>
+        <label class="field">
+          <span>Goal amount</span>
+          <input type="number" id="estimate-amount" min="0" step="0.01" placeholder="0.00">
+        </label>
+        <p id="estimate-result" class="estimate-result"></p>
+      </div>
+
+      <div class="card">
+        <h3>Your goals</h3>
+        <div id="goals-list" class="goals-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== History ===== -->
+  <main id="panel-history" class="panel">
+    <div class="card card--wide">
+      <h3>Income, expenses &amp; balance over time</h3>
+      <canvas id="trend-chart" height="260"></canvas>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Built for SDG 8 &amp; 10 — Decent Work &amp; Economic Growth, Reduced Inequalities. Runs entirely on your own machine; nothing leaves localhost.</p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
