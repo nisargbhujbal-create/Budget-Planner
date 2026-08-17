@@ -1,12 +1,9 @@
 # Ledger — Personal Budget & Savings Planner
 
 A small local web app for tracking monthly income and expenses, watching
-spending by category, and planning savings goals. Built as an expansion of a
+spending by category, and planning savings goals. Built as an expansion of my first year
 Codethon prototype (SDG 8 — Decent Work & Economic Growth, SDG 10 — Reduced
-Inequalities) into something you'd actually keep using.
-
-Originally a single-session command-line script, now a persistent Flask app
-with a browser front end — nothing leaves your machine.
+Inequalities).
 
 ## Features
 
